@@ -1,5 +1,7 @@
 package bugaga;
 
+import bugaga.io.Str;
+
 import java.awt.image.*;
 import javax.imageio.*;
 import java.io.*;
@@ -11,6 +13,8 @@ import java.io.*;
  */
 public class Decoder
 {
+
+    public static long timeTotal = 0;
 
     /**
      * Класс экзепшена для декодера.
@@ -37,7 +41,7 @@ public class Decoder
     /**
      * Массив с цветами пикселей текущей капчи.
      * Из-за особенностей реализации, СНАЧАЛА X, ПОТОМ Y: (Y;X)
-     *
+     * <p>
      * TRUE - белый.
      * FALSE - черный.
      */
@@ -48,7 +52,7 @@ public class Decoder
      * Массив заведомо больше, чем любая из предполагаемых цифр, чтобы все влезли.
      * Неиспользуемые пиксели внизу справа не будут оказывать влияния на результат,
      * потому что почти всегда там будет пусто.
-     *
+     * <p>
      * !!!ВНИМАНИЕ!!! Иногда бывает так, что между 2 цифрами не находится даже одного белого столбца.
      * (Такое чаще бывает, если парсить не по цвету самих цифр, а по отсутствию фонового)
      * Поэтому размеры следует выбирать с запасом.
@@ -115,12 +119,14 @@ public class Decoder
      *
      * @param _filename Путь к файлу.
      *
-     * @throws DecoderException Возникает, когда декодеру не удается разделить цифры на изображении.
-     *
      * @return
+     * @throws DecoderException Возникает, когда декодеру не удается разделить цифры на изображении.
      */
-    public synchronized boolean[][][] getArray (String _filename) throws DecoderException
+    public boolean[][][] getArray (String _filename) throws DecoderException
     {
+        // Засечем время.
+        long timeStart = java.lang.System.currentTimeMillis ();
+
         // Освободим ресурсы с прошлого раза
         freeResources ();
 
@@ -143,12 +149,24 @@ public class Decoder
         pixels = clearArea (borderImage, pixels);
 
         // Распечатаем изображение
-//        printImage (pixels);
+        //        printImage (pixels);
 
         // Разделим цифры
         separateNumbers ();
 
+        increaseTime ((java.lang.System.currentTimeMillis () - timeStart));
+
         return numbers;
+    }
+
+    protected static synchronized void increaseTime (long _diff)
+    {
+        timeTotal += _diff;
+    }
+
+    public static void printTime ()
+    {
+        Str.println ("Decoder total time: " + timeTotal + " millis.");
     }
 
     /**
@@ -189,12 +207,12 @@ public class Decoder
             for (int x = 0; x < pxls[y].length; x++)
             {
 
-//                // Выводим границы области с цифрами
-//                if (x == borderImage.xMin && y == borderImage.yMin)
-//                    System.out.print ("#");
-//
-//                if (x == borderImage.xMax && y == borderImage.yMax)
-//                    System.out.print ("#");
+                //                // Выводим границы области с цифрами
+                //                if (x == borderImage.xMin && y == borderImage.yMin)
+                //                    System.out.print ("#");
+                //
+                //                if (x == borderImage.xMax && y == borderImage.yMax)
+                //                    System.out.print ("#");
 
                 // Получаем цвет текущего пикселя
                 boolean color = pxls[y][x];
@@ -203,12 +221,12 @@ public class Decoder
                 if (color == true)
                 {
                     ++countColored;
-//                    System.out.print ("1 ");
+                    //                    System.out.print ("1 ");
                     System.out.print ("1");
                 }
                 else
                 {
-//                    System.out.print ("  ");
+                    //                    System.out.print ("  ");
                     System.out.print (" ");
                 }
             }
@@ -271,39 +289,57 @@ public class Decoder
         // Пробуем убрать шум
         // Вверху слева
         if ((x - 1 < 0 || y - 1 < 0) || pixels[y - 1][x - 1] != color)
+        {
             ++countMatches;
+        }
 
         // Вверху
         if (y - 1 < 0 || pixels[y - 1][x] != color)
+        {
             ++countMatches;
+        }
 
         // Вверху справа
         if ((x + 1 >= pixels[0].length || y - 1 < 0) || pixels[y - 1][x + 1] != color)
+        {
             ++countMatches;
+        }
 
         // Слева
         if (x - 1 < 0 || pixels[y][x - 1] != color)
+        {
             ++countMatches;
+        }
 
         // Справа
         if (x + 1 >= pixels[0].length || pixels[y][x + 1] != color)
+        {
             ++countMatches;
+        }
 
         // Внизу слева
         if ((x - 1 < 0 || y + 1 >= pixels.length) || pixels[y + 1][x - 1] != color)
+        {
             ++countMatches;
+        }
 
         // Внизу
         if (y + 1 >= pixels.length || pixels[y + 1][x] != color)
+        {
             ++countMatches;
+        }
 
         // Внизу справа
         if ((x + 1 >= pixels[0].length || y + 1 >= pixels.length) || pixels[y + 1][x + 1] != color)
+        {
             ++countMatches;
+        }
 
         // Если превышен уровень шума, делаем текущий пиксель белым
         if (countMatches >= NOISE_MAX_LEVEL)
+        {
             pixels[y][x] = false;
+        }
     }
 
     /**
@@ -320,7 +356,9 @@ public class Decoder
             {
                 // Собственно, убираем рамку
                 if ((y == 1 || y == pixels.length - 2) || (x == 1 || x == pixels[0].length - 2))
+                {
                     pixels[y][x] = false;
+                }
             }
         }
     }
@@ -384,9 +422,13 @@ public class Decoder
                     if (currentBorderLevel_X[x] >= MIN_IMAGE_BORDER_DETECT_THRESHOLD_X)
                     {
                         if (x < border.xMin)
+                        {
                             border.xMin = x;
+                        }
                         if (x > border.xMax)
+                        {
                             border.xMax = x;
+                        }
 
                         // Сбрасываем счетчик
                         currentBorderLevel_X[x] = 0;
@@ -394,9 +436,13 @@ public class Decoder
                     if (currentBorderLevel_Y[y] >= MIN_IMAGE_BORDER_DETECT_THRESHOLD_Y)
                     {
                         if (y < border.yMin)
+                        {
                             border.yMin = y;
+                        }
                         if (y > border.yMax)
+                        {
                             border.yMax = y;
+                        }
 
                         // Сбрасываем счетчик
                         currentBorderLevel_Y[y] = 0;

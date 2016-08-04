@@ -46,6 +46,12 @@ public class Test
         //--------------------------------------------------------------------------------------------------------------
         // Создаем и запускаем треды.
         int countRealThreads = SystemTools.runThreads (THREADS_COUNT, TestThread.class);
+
+        //--------------------------------------------------------------------------------------------------------------
+        Str.println ("");
+        Str.println ("Total rate: " + Str.getPercentage ((double) TestThread.countGood / Test.getFilesCount ()) + "%");
+        Str.println ("Threads: " + countRealThreads);
+        Decoder.printTime ();
     }
 
     /**

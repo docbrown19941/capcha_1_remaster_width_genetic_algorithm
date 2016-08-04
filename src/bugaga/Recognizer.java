@@ -161,7 +161,7 @@ public class Recognizer
     /**
      * Загрузить мозг.
      */
-    public static synchronized double[][][] getBrainArrayFromBrainString (String _brainString)
+    public static double[][][] getBrainArrayFromBrainString (String _brainString)
     {
         // Создадим массив для мозга
         double[][][] brainArray = new double[10][Decoder.LENGTH_Y_RESULT_ARRAY][Decoder.LENGTH_X_RESULT_ARRAY];

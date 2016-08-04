@@ -1,7 +1,10 @@
 package bugaga;
 
 import bugaga.io.Str;
+import org.apache.commons.io.FileUtils;
+
 import java.io.File;
+import java.io.IOException;
 
 /**
  * Тестируем скрипт на обучающей выборке.
@@ -10,17 +13,31 @@ import java.io.File;
  */
 public class Test
 {
+    protected static int currentFileIndex = 0;
 
     /**
      * Файлы подготовленных капч.
      */
     protected static File[] files;
 
-    public static synchronized void run (String recognizerBrainFilename, String recognizedCapchiesFolder)
+    public static synchronized void run (String _recognizerBrainFilename, String _recognizedCapchiesFolder)
     {
-        int countGood = 0;// Число удачно распознанных капч
-        scanDir (recognizedCapchiesFolder);
-        Recognizer.init (recognizerBrainFilename);
+        // Число удачно распознанных капч
+        int countGood = 0;
+        scanDir (_recognizedCapchiesFolder);
+
+        // Получим мозг.
+        String brainString = "";
+        double[][][] brainArray = {};
+        try
+        {
+            brainString = FileUtils.readFileToString (new File (_recognizerBrainFilename), "UTF-8");
+            brainArray = Recognizer.getBrainArrayFromBrainString (brainString);
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace ();
+        }
 
         try
         {
@@ -31,14 +48,14 @@ public class Test
                 String validCode = name[0];
 
                 // Распознаем
-                String code = Recognizer.recognize (files[i].getAbsolutePath ());
+                String code = Recognizer.recognizeBase (files[i].getAbsolutePath (), brainArray);
 
                 if (code.equals (validCode))
+                {
                     ++countGood;
+                }
 
-                Str.println (filename + " - " + code + ". GOOD: "
-                        + Str.getPercentage ((double) countGood / files.length) + "%",
-                             true, files.length);
+                Str.println (filename + " - " + code + ". GOOD: " + Str.getPercentage ((double) countGood / files.length) + "%", true, files.length);
             }
         }
         catch (ArrayIndexOutOfBoundsException e)
@@ -56,5 +73,13 @@ public class Test
         files = fileDir.listFiles ();
 
         System.out.println ("Total capchies for test: " + files.length + "...");
+    }
+
+
+    public static synchronized String getTask ()
+    {
+        String task = "";
+
+        return task;
     }
 }

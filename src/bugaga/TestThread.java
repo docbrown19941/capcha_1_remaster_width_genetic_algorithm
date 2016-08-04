@@ -1,20 +1,53 @@
 package bugaga;
 
+import bugaga.io.Str;
+
 /**
  * Класс треда теста.
  */
 public class TestThread implements Runnable
 {
-    protected Thread t;
+    public Thread t;
+    protected static int countGood = 0;
 
-    public TestThread (String _threadName)
+
+    protected static synchronized void increaseCountGood ()
+    {
+        ++countGood;
+    }
+
+    public TestThread ()
     {
         // Создаем поток
-        t = new Thread (this, _threadName);
+        t = new Thread (this, "TestThread");
         t.start ();
     }
 
     public void run ()
     {
+        while (true)
+        {
+            // Получим задачу.
+            String[] task = Test.getTaskAndCheckExit ();
+
+            // Чекаем выход.
+            boolean isExit = Boolean.valueOf (task[0]);
+            if (isExit)
+            {
+                break;
+            }
+
+            // Распознаем.
+            String code = Recognizer.recognizeBase (task[2], Test.getBrainArray ());
+
+            if (code.equals (task[3]))
+            {
+                increaseCountGood ();
+            }
+
+            Str.println (task[1] + " - " + code + ". GOOD: " +
+                         Str.getPercentage ((double) countGood / Test.getFilesCount ()) + "%", true, Test
+                    .getFilesCount ());
+        }
     }
 }

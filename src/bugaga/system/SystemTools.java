@@ -26,7 +26,7 @@ public class SystemTools
     public static synchronized int runThreads (int countThreads, Class runnableClass)
     {
         // Лист с текущими потоками
-        ArrayList<Runnable> currentThreads = new ArrayList<> ();
+        ArrayList<Runnable> currentThreads = new ArrayList<Runnable> ();
 
         try
         {
@@ -42,7 +42,8 @@ public class SystemTools
             }
             catch (OutOfMemoryError e)
             {
-                java.lang.System.err.println ("Not anough memory! Message: \"" + e.getMessage () + "\".");
+                java.lang.System.err
+                        .println ("TEST CREATION ERROR: Not anough memory! Message: \"" + e.getMessage () + "\".");
             }
 
             // Присоединяемся к трэдам, чтобы ожидать их завершения
@@ -58,7 +59,19 @@ public class SystemTools
                 t.join ();
             }
         }
-        catch (InstantiationException | IllegalAccessException | NoSuchFieldException | InterruptedException e)
+        catch (InstantiationException e)
+        {
+            java.lang.System.out.println (e.getMessage ());
+        }
+        catch (IllegalAccessException e)
+        {
+            java.lang.System.out.println (e.getMessage ());
+        }
+        catch (NoSuchFieldException e)
+        {
+            java.lang.System.out.println (e.getMessage ());
+        }
+        catch (InterruptedException e)
         {
             java.lang.System.out.println (e.getMessage ());
         }
@@ -76,10 +89,8 @@ public class SystemTools
     public static String getGen (long timeStart)
     {
         double time = (double) (java.lang.System.currentTimeMillis () - timeStart) / 1000 / 100;
-        return "Time: "
-                + Str.getPercentage (time) + " sec / "
-                + (Str.getPercentage (time / 60)) + " min / "
-                + (Str.getPercentage (time / 60 / 60)) + " hour.";
+        return "Time: " + Str.getPercentage (time) + " sec / " + (Str.getPercentage (time / 60)) + " min / " +
+               (Str.getPercentage (time / 60 / 60)) + " hour.";
     }
 
     /**

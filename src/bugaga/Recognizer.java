@@ -19,68 +19,38 @@ public class Recognizer
      */
     protected static double maxFrequencies[] = new double[10];
 
-
     /**
      * Распознать код на капче.
      *
-     * @param _filename   Картинка с капчей.
-     * @param _brainArray Мозг для этого распознавания.
+     * @param _capchaArray Обработанная картинка с капчей.
+     * @param _brainArray  Мозг для этого распознавания.
      *
      * @return Код на капче.
      */
-    public static String recognizeBase (String _filename, double[][][] _brainArray)
+    public static String recognizeBase (boolean[][][] _capchaArray, double[][][] _brainArray)
     {
-        Decoder d = new Decoder ();
         String result = "";
 
-        try
+        // Обходим все 4 цифры изображения
+        for (int n = 0; n < _capchaArray.length; n++)
         {
-            // Получим массив от декодера
-            boolean[][][] dArray = d.getArray (_filename);
+            // Получим вероятности для первой цифры
+            double[] frequencies = getSums (_capchaArray[n], _brainArray);
 
-            // Обходим все 4 цифры изображения
-            for (int n = 0; n < dArray.length; n++)
+            // Массив различий
+            double[] diffs = new double[10];
+
+            // Распечатаем массив вероятностей
+            for (int i = 0; i < frequencies.length; i++)
             {
-
-                // Получим вероятности для первой цифры
-                double[] frequencies = getSums (dArray[n], _brainArray);
-
-                // Массив различий
-                double[] diffs = new double[10];
-
-                // Распечатаем массив вероятностей
-                for (int i = 0; i < frequencies.length; i++)
-                {
-                    diffs[i] = maxFrequencies[i] - frequencies[i];
-                }
-
-                int indexMax = getMaxValueIndex (frequencies);// Собственно, это распознанная цифра
-                result += indexMax;
+                diffs[i] = maxFrequencies[i] - frequencies[i];
             }
 
-            return result;
+            int indexMax = getMaxValueIndex (frequencies);// Собственно, это распознанная цифра
+            result += indexMax;
         }
-        catch (Decoder.DecoderException e)
-        {
-            System.err.println (e.getMessage ());
-            return e.getMessage ();
-        }
-    }
 
-
-    /**
-     * Распознать код на капче.
-     *
-     * @param _filename    Картинка с капчей.
-     * @param _brainString Мозг для этого распознавания.
-     *
-     * @return Код на капче.
-     */
-    public static String recognize (String _filename, String _brainString)
-    {
-        // Получим массив мозга
-        double[][][] brainArray = getBrainArrayFromBrainString (_brainString);
-        return recognizeBase (_filename, brainArray);
+        return result;
     }
 
     /**
@@ -173,7 +143,8 @@ public class Recognizer
             String[] info = currentStr.split ("\\|");
 
             // Собственно, пишем данные в память
-            brainArray[Integer.valueOf (info[0])][Integer.valueOf (info[1])][Integer.valueOf (info[2])] = Double.parseDouble (info[3]);
+            brainArray[Integer.valueOf (info[0])][Integer.valueOf (info[1])][Integer.valueOf (info[2])] = Double
+                    .parseDouble (info[3]);
         }
 
         // Посчитаем максимальные вероятности для каждой цифры

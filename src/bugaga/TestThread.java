@@ -11,9 +11,14 @@ public class TestThread implements Runnable
     protected static int countGood = 0;
 
 
-    protected static synchronized void increaseCountGood ()
+    protected static synchronized int getOrIncreaseCountGood (boolean _isIncrease)
     {
-        ++countGood;
+        if (_isIncrease)
+        {
+            ++countGood;
+        }
+
+        return countGood;
     }
 
     public TestThread ()
@@ -28,26 +33,25 @@ public class TestThread implements Runnable
         while (true)
         {
             // Получим задачу.
-            String[] task = Test.getTaskAndCheckExit ();
+            Test.Task task = Test.getTaskAndCheckExit ();
 
             // Чекаем выход.
-            boolean isExit = Boolean.valueOf (task[0]);
-            if (isExit)
+            if (task.isExit)
             {
                 break;
             }
 
             // Распознаем.
-            String code = Recognizer.recognizeBase (task[2], Test.getBrainArray ());
+            String code = Recognizer.recognizeBase (task.capchaArray, Test.getBrainArray ());
 
-            if (code.equals (task[3]))
+            if (code.equals (task.validCode))
             {
-                increaseCountGood ();
+                getOrIncreaseCountGood (true);
             }
 
-            Str.println (task[1] + " - " + code + ". GOOD: " +
-                         Str.getPercentage ((double) countGood / Test.getFilesCount ()) + "%", true, Test
-                    .getFilesCount ());
+            Str.println (task.filename + " - " + code + ". GOOD: " +
+                         Str.getPercentage ((double) getOrIncreaseCountGood (false) / Test.getFilesCount ()) +
+                         "%", true, Test.getFilesCount ());
         }
     }
 }

@@ -60,6 +60,21 @@ public class Decoder
     protected boolean numbers[][][];
 
     /**
+     * Каталог с капчами.
+     */
+    protected static String capchiesDirName;
+
+    /**
+     * Массив с файлами.
+     */
+    protected static File[] files;
+
+    /**
+     * Массив с обработанными файлами, пригодными для рекогнайзера.
+     */
+    protected static boolean[][][][] processedFilesArray;
+
+    /**
      * Граница местонахождения всех Цифр.
      */
     protected Border borderImage;
@@ -109,9 +124,44 @@ public class Decoder
     /**
      * Конструктор.
      */
-    public Decoder ()
+    public Decoder (String _capchiesDirName)
     {
+        capchiesDirName = _capchiesDirName;
         initNumbers ();
+        loadAllFilesToMemory ();
+    }
+
+    protected void loadAllFilesToMemory ()
+    {
+        Str.println ("Decoder starts loading...");
+        files = new java.io.File (capchiesDirName).listFiles ();
+        processedFilesArray = new boolean[files.length][COUNT_IMAGE_NUMBERS][LENGTH_Y_RESULT_ARRAY][LENGTH_X_RESULT_ARRAY];
+
+        int index = 0;
+        for (File file : files)
+        {
+            try
+            {
+                processedFilesArray[index++] = getArray (file.getAbsolutePath ());
+            }
+            catch (DecoderException e)
+            {
+                //System.err.println (e.getMessage ());
+            }
+            //Str.println ((index + 1) + ") Файл " + file.getName () + " загружен.");
+        }
+
+        printTime ();
+    }
+
+    public boolean[][][][] getProcessedFilesArray ()
+    {
+        return processedFilesArray;
+    }
+
+    public File[] getFiles ()
+    {
+        return files;
     }
 
     /**
@@ -122,7 +172,7 @@ public class Decoder
      * @return
      * @throws DecoderException Возникает, когда декодеру не удается разделить цифры на изображении.
      */
-    public boolean[][][] getArray (String _filename) throws DecoderException
+    public synchronized boolean[][][] getArray (String _filename) throws DecoderException
     {
         // Засечем время.
         long timeStart = java.lang.System.currentTimeMillis ();

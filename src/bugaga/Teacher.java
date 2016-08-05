@@ -1,6 +1,7 @@
 package bugaga;
 
 import java.io.*;
+
 import bugaga.io.Str;
 import bugaga.io.Config;
 
@@ -18,6 +19,8 @@ public class Teacher
     protected File[] files;
 
     protected String capchiesDir;
+
+    protected Decoder decoder;
 
     /**
      * Класс пикселя.
@@ -49,6 +52,7 @@ public class Teacher
             return (double) countBlack / (countBlack + countWhite);
         }
     }
+
     /**
      * Массив с частотами раскраски каждого пикселя цифры в черный цвет для каждой цифры.
      * [цифра][Y][X][частота]
@@ -63,6 +67,7 @@ public class Teacher
     public Teacher (String folder)
     {
         capchiesDir = folder;
+        decoder = new Decoder (capchiesDir);
     }
 
     /**
@@ -82,11 +87,9 @@ public class Teacher
             out += file.getName () + " - ";
 
             // Декодируем
-            Decoder d = new Decoder ();
-
             try
             {
-                boolean[][][] boolArray = d.getArray (file.getAbsolutePath ());
+                boolean[][][] boolArray = decoder.getArray (file.getAbsolutePath ());
 
                 // Пишем стату в массив вероятностей.
                 // Обходим 4 цифры на изображении
@@ -102,7 +105,9 @@ public class Teacher
 
                             // ЕСЛИ НЕОБХОДИМО, создаем объект пикселя в массиве пикселей-частот
                             if (pixels[index][y][x] == null)
+                            {
                                 pixels[index][y][x] = new Pixel ();
+                            }
 
                             // Сравниваем цвет
                             if (boolArray[i][y][x])
@@ -134,7 +139,7 @@ public class Teacher
 
     /**
      * Сохранить конфиг в файл.
-     *
+     * <p>
      * Формат файла:
      * В каждой строке 1 пиксель:
      * цифра|y|x|частота появления черного цвета.
@@ -155,14 +160,14 @@ public class Teacher
                     result += i + "|" + y + "|" + x + "|" + frequency + "\n";
                 }
 
-//                result += "\n";
+                //                result += "\n";
             }
 
-//            result += "\n";
+            //            result += "\n";
         }
 
-        bugaga.io.File.saveToFile (result, Config.getString ("brainFoldername")
-                + "/brain_" + System.currentTimeMillis () + ".txt");
+        bugaga.io.File.saveToFile (result,
+                Config.getString ("brainFoldername") + "/brain_" + System.currentTimeMillis () + ".txt");
     }
 
     /**

@@ -14,6 +14,24 @@ import java.io.IOException;
  */
 public class Test
 {
+    public static class Task
+    {
+        public boolean isExit;
+        public boolean[][][] capchaArray;
+        public String validCode;
+        public String filename;
+
+
+        public Task (boolean _isExit, boolean[][][] _capchaArray, String _validCode, String _filename)
+        {
+            isExit = _isExit;
+            capchaArray = _capchaArray;
+            validCode = _validCode;
+            filename = _filename;
+        }
+    }
+    //------------------------------------------------------------------------------------------------------------------
+
     /**
      * Количество тредов для тестинга.
      */
@@ -23,8 +41,11 @@ public class Test
      * Файлы подготовленных капч.
      */
     protected static File[] files;
-    protected static int currentFileIndex = 0;
-    protected static double[][][] brainArray = {};
+    protected static boolean[][][][] processedFilesArray;
+    protected static int currentTaskIndex = 0;
+    protected static double[][][] brainArray;
+    protected static Decoder decoder;
+
 
     //------------------------------------------------------------------------------------------------------------------
     public static void run (String _recognizerBrainFilename, String _recognizedCapchiesFolder)
@@ -32,7 +53,7 @@ public class Test
         loadFilenamesToArray (_recognizedCapchiesFolder);
 
         // Получим мозг.
-        String brainString = "";
+        String brainString;
         try
         {
             brainString = FileUtils.readFileToString (new File (_recognizerBrainFilename), "UTF-8");
@@ -44,12 +65,19 @@ public class Test
         }
 
         //--------------------------------------------------------------------------------------------------------------
+        decoder = new Decoder (_recognizedCapchiesFolder);
+        files = decoder.getFiles ();
+        processedFilesArray = decoder.getProcessedFilesArray ();
+
+        //--------------------------------------------------------------------------------------------------------------
         // Создаем и запускаем треды.
         int countRealThreads = SystemTools.runThreads (THREADS_COUNT, TestThread.class);
 
         //--------------------------------------------------------------------------------------------------------------
         Str.println ("");
-        Str.println ("Total rate: " + Str.getPercentage ((double) TestThread.countGood / Test.getFilesCount ()) + "%");
+        Str.println ("Total rate: " +
+                     Str.getPercentage ((double) TestThread.getOrIncreaseCountGood (false) / Test.getFilesCount ()) +
+                     "%");
         Str.println ("Threads: " + countRealThreads);
         Decoder.printTime ();
     }
@@ -71,35 +99,32 @@ public class Test
      *
      * @return
      */
-    public static synchronized String[] getTaskAndCheckExit ()
+    public static synchronized Task getTaskAndCheckExit ()
     {
         // Происходит какое-то странное дерьмо. Работает только без слова synchronized.
         // Понял, если 1 метод со словом synchronized, его вызвал какой-то другой метод.
         // А этот первый synchronized-метод вызывает другой synchronized-метод, то ожидание суммируется
         // и ни один из вторых synchronized-методов не сможет вызваться.
+        boolean isExit;
+        boolean[][][] capchaArray = {};
+        String validCode = "";
+        String filename = "";
 
-        String[] taskArr = new String[4];
-        if (currentFileIndex >= files.length)
+        if (currentTaskIndex >= files.length)
         {
-            taskArr[0] = "true";
-            taskArr[1] = "";
-            taskArr[2] = "";
-            taskArr[3] = "";
+            isExit = true;
         }
         else
         {
-            java.io.File file = files[currentFileIndex++];
-            String filename = file.getName ();
-            String validCode = filename.split ("_")[0];
+            isExit = false;
+            capchaArray = decoder.getProcessedFilesArray ()[currentTaskIndex];
+            filename = files[currentTaskIndex].getName ();
+            validCode = filename.split ("_")[0];
 
-            // isExit, name, absolutePath, validCode
-            taskArr[0] = "false";
-            taskArr[1] = filename;
-            taskArr[2] = file.getAbsolutePath ();
-            taskArr[3] = validCode;
+            ++currentTaskIndex;
         }
 
-        return taskArr;
+        return new Task (isExit, capchaArray, validCode, filename);
     }
 
     public static double[][][] getBrainArray ()

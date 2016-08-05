@@ -42,18 +42,4 @@ public class Index
     {
         Test.run (Config.getString ("brainFilename"), Config.getString ("capchaTestFolder"));
     }
-
-    /**
-     * Распознать 1 файл.
-     *
-     * @param _fullCapchaPath Полный путь к капче.
-     *
-     * @return Текст с капчи.
-     */
-    protected static String recognizeFile (String _fullCapchaPath, String _brain)
-    {
-        String code = Recognizer.recognize (_fullCapchaPath, _brain);
-
-        return code;
-    }
 }

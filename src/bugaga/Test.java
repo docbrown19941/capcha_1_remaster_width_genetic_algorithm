@@ -36,7 +36,7 @@ public class Test
     /**
      * Количество тредов для тестинга.
      */
-    protected static final int THREADS_COUNT = 1;
+    protected static final int THREADS_COUNT = 4;
 
     /**
      * Файлы подготовленных капч.
@@ -49,7 +49,7 @@ public class Test
 
 
     //------------------------------------------------------------------------------------------------------------------
-    public static void run (String _recognizerBrainFilename, String _recognizedCapchiesFolder)
+    public static void runMultiThread (String _recognizerBrainFilename, String _recognizedCapchiesFolder)
     {
         // Получим мозг.
         String brainString;
@@ -64,9 +64,7 @@ public class Test
         }
 
         //--------------------------------------------------------------------------------------------------------------
-        decoder = new Decoder (_recognizedCapchiesFolder);
-        files = decoder.getFiles ();
-        processedFilesArray = decoder.getProcessedFilesArray ();
+        initCapchaFiles (_recognizedCapchiesFolder);
 
         //--------------------------------------------------------------------------------------------------------------
         // Создаем и запускаем треды.
@@ -78,10 +76,22 @@ public class Test
                      Str.getPercentage ((double) TestThread.getOrIncreaseCountGood (false) / Test.getFilesCount ()) +
                      "%");
         Str.println ("Threads: " + countRealThreads);
+        printTiming ();
+    }
+
+    protected static void initCapchaFiles (String _recognizedCapchiesFolder)
+    {
+        decoder = new Decoder (_recognizedCapchiesFolder);
+        files = decoder.getFiles ();
+        processedFilesArray = decoder.getProcessedFilesArray ();
+    }
+
+    protected static void printTiming ()
+    {
+        Str.println ("");
         Str.println (TimeTracker.getGen ("DECODER_SCANDIR_TIME   "));
         Str.println (TimeTracker.getGen ("SINGLE_FILE_PARSE_TIME "));
         Str.println (TimeTracker.getGen ("DECODER_PREPROCESS_TIME"));
-        Str.println (TimeTracker.getGen ("SEND_DATA_TIME         "));
         Str.println (TimeTracker.getGen ("RECOGNIZE_TIME         "));
     }
 
@@ -126,5 +136,46 @@ public class Test
     public static int getFilesCount ()
     {
         return files.length;
+    }
+
+    public static double getBrainRate (double[][][] _brainArray)
+    {
+        // Обходим массив обработанных капчей.
+        int countGood = 0;
+        for (int i = 0; i < decoder.getProcessedFilesArray ().length; i++)
+        {
+            boolean[][][] capcha = decoder.getProcessedFilesArray ()[i];
+            String validCode = files[i].getName ().split ("_")[0];
+            String code = Recognizer.recognizeBase (capcha, _brainArray);
+
+            if (code.equals (validCode))
+            {
+                ++countGood;
+            }
+        }
+
+        return Str.getPercentage ((double) countGood / files.length);
+    }
+
+    public static void runGeneration (String _recognizerBrainFilename, String _recognizedCapchiesFolder)
+    {
+        initCapchaFiles (_recognizedCapchiesFolder);
+
+        // Получим мозг.
+        String brainString;
+        double[][][] brain = {};
+        try
+        {
+            brainString = FileUtils.readFileToString (new File (_recognizerBrainFilename), "UTF-8");
+            brain = Recognizer.getBrainArrayFromBrainString (brainString);
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace ();
+        }
+
+        double rate = getBrainRate (brain);
+        printTiming ();
+        Str.println ("Brain rate: " + rate + "%");
     }
 }

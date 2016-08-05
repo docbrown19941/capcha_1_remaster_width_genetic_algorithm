@@ -29,7 +29,6 @@ public class Recognizer
      */
     public static String recognizeBase (boolean[][][] _capchaArray, double[][][] _brainArray)
     {
-        TimeTracker.stop ("SEND_DATA_TIME         ");
         TimeTracker.start ("RECOGNIZE_TIME         ");
         String result = "";
 

@@ -1,7 +1,6 @@
 package bugaga;
 
 import bugaga.io.*;
-import bugaga.system.SystemTools;
 
 /**
  * Распознавалка капчи Spaces.ru
@@ -25,8 +24,9 @@ public class Index
         // Активируем настройки
         Config.init (CONF_FILENAME);
 
-        //        teachSystem ();
-        testSystem ();
+        //                teachSystem ();
+        //        testSystem ();
+        Test.runGeneration (Config.getString ("brainFilename"), Config.getString ("capchaTestFolder"));
 
         Str.println (TimeTracker.stopAndGetGen ("ALL_TIME               "));
     }
@@ -40,6 +40,6 @@ public class Index
 
     protected static void testSystem ()
     {
-        Test.run (Config.getString ("brainFilename"), Config.getString ("capchaTestFolder"));
+        Test.runMultiThread (Config.getString ("brainFilename"), Config.getString ("capchaTestFolder"));
     }
 }

@@ -95,7 +95,7 @@ public class DownThread // implements Runnable
 //    }
 //
 //    @Override
-//    public void run ()
+//    public void runMultiThread ()
 //    {
 //        while (currentImageNumber < params.countDownImages)
 //        {

@@ -29,6 +29,8 @@ public class Recognizer
      */
     public static String recognizeBase (boolean[][][] _capchaArray, double[][][] _brainArray)
     {
+        TimeTracker.stop ("SEND_DATA_TIME         ");
+        TimeTracker.start ("RECOGNIZE_TIME         ");
         String result = "";
 
         // Обходим все 4 цифры изображения
@@ -50,6 +52,7 @@ public class Recognizer
             result += indexMax;
         }
 
+        TimeTracker.stop ("RECOGNIZE_TIME         ");
         return result;
     }
 

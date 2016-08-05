@@ -20,7 +20,7 @@ public class Index
     public static void main (String[] args)
     {
         // Замеряем время
-        long timeStart = java.lang.System.currentTimeMillis ();
+        TimeTracker.start ("ALL_TIME               ");
 
         // Активируем настройки
         Config.init (CONF_FILENAME);
@@ -28,7 +28,7 @@ public class Index
         //        teachSystem ();
         testSystem ();
 
-        Str.println (SystemTools.getGen (timeStart));
+        Str.println (TimeTracker.stopAndGetGen ("ALL_TIME               "));
     }
     //--------------------------------------------------------------------------
 

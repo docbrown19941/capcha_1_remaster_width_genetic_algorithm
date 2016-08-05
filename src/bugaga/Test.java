@@ -6,6 +6,7 @@ import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.Time;
 
 /**
  * Тестируем скрипт на обучающей выборке.
@@ -35,7 +36,7 @@ public class Test
     /**
      * Количество тредов для тестинга.
      */
-    protected static final int THREADS_COUNT = 10;
+    protected static final int THREADS_COUNT = 1;
 
     /**
      * Файлы подготовленных капч.
@@ -50,8 +51,6 @@ public class Test
     //------------------------------------------------------------------------------------------------------------------
     public static void run (String _recognizerBrainFilename, String _recognizedCapchiesFolder)
     {
-        loadFilenamesToArray (_recognizedCapchiesFolder);
-
         // Получим мозг.
         String brainString;
         try
@@ -79,20 +78,12 @@ public class Test
                      Str.getPercentage ((double) TestThread.getOrIncreaseCountGood (false) / Test.getFilesCount ()) +
                      "%");
         Str.println ("Threads: " + countRealThreads);
-        Decoder.printTime ();
+        Str.println (TimeTracker.getGen ("DECODER_SCANDIR_TIME   "));
+        Str.println (TimeTracker.getGen ("SINGLE_FILE_PARSE_TIME "));
+        Str.println (TimeTracker.getGen ("DECODER_PREPROCESS_TIME"));
+        Str.println (TimeTracker.getGen ("SEND_DATA_TIME         "));
+        Str.println (TimeTracker.getGen ("RECOGNIZE_TIME         "));
     }
-
-    /**
-     * Просканить папку с капчами и получить массив со всеми ее файлами.
-     */
-    protected static synchronized void loadFilenamesToArray (String folder)
-    {
-        File fileDir = new java.io.File (folder);
-        files = fileDir.listFiles ();
-
-        System.out.println ("Total capchies for test: " + files.length + "...");
-    }
-
 
     /**
      * Получить задание и проверить, не надо ли завершить работу.

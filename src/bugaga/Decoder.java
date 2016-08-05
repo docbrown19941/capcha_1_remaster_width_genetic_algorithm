@@ -5,6 +5,7 @@ import bugaga.io.Str;
 import java.awt.image.*;
 import javax.imageio.*;
 import java.io.*;
+import java.sql.Time;
 
 /**
  * Класс для перевода изображения капчи в массив с бинарным (черно-белым) представлением цифр.
@@ -133,8 +134,12 @@ public class Decoder
 
     protected void loadAllFilesToMemory ()
     {
-        Str.println ("Decoder starts loading...");
+        TimeTracker.start ("DECODER_SCANDIR_TIME   ");
+        Str.println ("Decoder starts loading files...");
         files = new java.io.File (capchiesDirName).listFiles ();
+        Str.println ("Decoder finished loading files.");
+        TimeTracker.stop ("DECODER_SCANDIR_TIME   ");
+
         processedFilesArray = new boolean[files.length][COUNT_IMAGE_NUMBERS][LENGTH_Y_RESULT_ARRAY][LENGTH_X_RESULT_ARRAY];
 
         int index = 0;
@@ -150,8 +155,6 @@ public class Decoder
             }
             //Str.println ((index + 1) + ") Файл " + file.getName () + " загружен.");
         }
-
-        printTime ();
     }
 
     public boolean[][][][] getProcessedFilesArray ()
@@ -174,9 +177,6 @@ public class Decoder
      */
     public synchronized boolean[][][] getArray (String _filename) throws DecoderException
     {
-        // Засечем время.
-        long timeStart = java.lang.System.currentTimeMillis ();
-
         // Освободим ресурсы с прошлого раза
         freeResources ();
 
@@ -185,6 +185,8 @@ public class Decoder
 
         // Парсим цвета в массив
         parsePixelsColors ();
+
+        TimeTracker.start ("DECODER_PREPROCESS_TIME");
 
         // Уберем рамку вокруг капчи
         clearBorder ();
@@ -204,19 +206,8 @@ public class Decoder
         // Разделим цифры
         separateNumbers ();
 
-        increaseTime ((java.lang.System.currentTimeMillis () - timeStart));
-
+        TimeTracker.stop ("DECODER_PREPROCESS_TIME");
         return numbers;
-    }
-
-    protected static synchronized void increaseTime (long _diff)
-    {
-        timeTotal += _diff;
-    }
-
-    public static void printTime ()
-    {
-        Str.println ("Decoder total time: " + timeTotal + " millis.");
     }
 
     /**
@@ -293,6 +284,7 @@ public class Decoder
      */
     protected void parsePixelsColors ()
     {
+        TimeTracker.start ("SINGLE_FILE_PARSE_TIME ");
         File file = new File (filename);
 
         try
@@ -321,6 +313,8 @@ public class Decoder
         {
             System.err.println (e.getMessage ());
         }
+
+        TimeTracker.stop ("SINGLE_FILE_PARSE_TIME ");
     }
 
     /**

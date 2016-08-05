@@ -42,6 +42,7 @@ public class TestThread implements Runnable
             }
 
             // Распознаем.
+            TimeTracker.start ("SEND_DATA_TIME         ");
             String code = Recognizer.recognizeBase (task.capchaArray, Test.getBrainArray ());
 
             if (code.equals (task.validCode))
